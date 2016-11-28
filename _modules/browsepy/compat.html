@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>browsepy.compat &#8212; browsepy 0.5.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/logo.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.5.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="browsepy 0.5.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for browsepy.compat</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: UTF-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+<span class="n">FS_ENCODING</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getfilesystemencoding</span><span class="p">()</span>
+<span class="n">PY_LEGACY</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">)</span>
+<span class="n">TRUE_VALUES</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">((</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;enable&#39;</span><span class="p">,</span> <span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">scandir</span> <span class="k">import</span> <span class="n">scandir</span><span class="p">,</span> <span class="n">walk</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">os</span><span class="p">,</span> <span class="s1">&#39;scandir&#39;</span><span class="p">):</span>
+        <span class="k">raise</span>
+    <span class="n">scandir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span>
+    <span class="n">walk</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span>
+
+
+<div class="viewcode-block" id="isexec"><a class="viewcode-back" href="../../compat.html#browsepy.compat.isexec">[docs]</a><span class="k">def</span> <span class="nf">isexec</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Check if given path points to an executable file.</span>
+
+<span class="sd">    :param path: file path</span>
+<span class="sd">    :type path: str</span>
+<span class="sd">    :return: True if executable, False otherwise</span>
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="fsdecode"><a class="viewcode-back" href="../../compat.html#browsepy.compat.fsdecode">[docs]</a><span class="k">def</span> <span class="nf">fsdecode</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">os_name</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">fs_encoding</span><span class="o">=</span><span class="n">FS_ENCODING</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Decode given path.</span>
+
+<span class="sd">    :param path: path will be decoded if using bytes</span>
+<span class="sd">    :type path: bytes or str</span>
+<span class="sd">    :param os_name: operative system name, defaults to os.name</span>
+<span class="sd">    :type os_name: str</span>
+<span class="sd">    :param fs_encoding: current filesystem encoding, defaults to autodetected</span>
+<span class="sd">    :type fs_encoding: str</span>
+<span class="sd">    :return: decoded path</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">path</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">errors</span><span class="p">:</span>
+        <span class="n">use_strict</span> <span class="o">=</span> <span class="n">PY_LEGACY</span> <span class="ow">or</span> <span class="n">os_name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="s1">&#39;strict&#39;</span> <span class="k">if</span> <span class="n">use_strict</span> <span class="k">else</span> <span class="s1">&#39;surrogateescape&#39;</span>
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">fs_encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="fsencode"><a class="viewcode-back" href="../../compat.html#browsepy.compat.fsencode">[docs]</a><span class="k">def</span> <span class="nf">fsencode</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">os_name</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">fs_encoding</span><span class="o">=</span><span class="n">FS_ENCODING</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Encode given path.</span>
+
+<span class="sd">    :param path: path will be encoded if not using bytes</span>
+<span class="sd">    :type path: bytes or str</span>
+<span class="sd">    :param os_name: operative system name, defaults to os.name</span>
+<span class="sd">    :type os_name: str</span>
+<span class="sd">    :param fs_encoding: current filesystem encoding, defaults to autodetected</span>
+<span class="sd">    :type fs_encoding: str</span>
+<span class="sd">    :return: encoded path</span>
+<span class="sd">    :rtype: bytes</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">path</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">errors</span><span class="p">:</span>
+        <span class="n">use_strict</span> <span class="o">=</span> <span class="n">PY_LEGACY</span> <span class="ow">or</span> <span class="n">os_name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="s1">&#39;strict&#39;</span> <span class="k">if</span> <span class="n">use_strict</span> <span class="k">else</span> <span class="s1">&#39;surrogateescape&#39;</span>
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">fs_encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getcwd"><a class="viewcode-back" href="../../compat.html#browsepy.compat.getcwd">[docs]</a><span class="k">def</span> <span class="nf">getcwd</span><span class="p">(</span><span class="n">fs_encoding</span><span class="o">=</span><span class="n">FS_ENCODING</span><span class="p">,</span> <span class="n">cwd_fnc</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get current work directory&#39;s absolute path.</span>
+<span class="sd">    Like os.getcwd but garanteed to return an unicode-str object.</span>
+
+<span class="sd">    :param fs_encoding: filesystem encoding, defaults to autodetected</span>
+<span class="sd">    :type fs_encoding: str</span>
+<span class="sd">    :param cwd_fnc: callable used to get the path, defaults to os.getcwd</span>
+<span class="sd">    :type cwd_fnc: Callable</span>
+<span class="sd">    :return: path</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">cwd_fnc</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">fsdecode</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fs_encoding</span><span class="o">=</span><span class="n">fs_encoding</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getdebug"><a class="viewcode-back" href="../../compat.html#browsepy.compat.getdebug">[docs]</a><span class="k">def</span> <span class="nf">getdebug</span><span class="p">(</span><span class="n">environ</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">,</span> <span class="n">true_values</span><span class="o">=</span><span class="n">TRUE_VALUES</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get if app is expected to be ran in debug mode looking at environment</span>
+<span class="sd">    variables.</span>
+
+<span class="sd">    :param environ: environment dict-like object</span>
+<span class="sd">    :type environ: collections.abc.Mapping</span>
+<span class="sd">    :returns: True if debug contains a true-like string, False otherwise</span>
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">true_values</span></div>
+
+
+<div class="viewcode-block" id="deprecated"><a class="viewcode-back" href="../../compat.html#browsepy.compat.deprecated">[docs]</a><span class="k">def</span> <span class="nf">deprecated</span><span class="p">(</span><span class="n">func_or_text</span><span class="p">,</span> <span class="n">environ</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Decorator used to mark functions as deprecated. It will result in a</span>
+<span class="sd">    warning being emmitted hen the function is called.</span>
+
+<span class="sd">    Usage:</span>
+
+<span class="sd">    &gt;&gt;&gt; @deprecated</span>
+<span class="sd">    ... def fnc():</span>
+<span class="sd">    ...     pass</span>
+
+<span class="sd">    Usage (custom message):</span>
+
+<span class="sd">    &gt;&gt;&gt; @deprecated(&#39;This is deprecated&#39;)</span>
+<span class="sd">    ... def fnc():</span>
+<span class="sd">    ...     pass</span>
+
+<span class="sd">    :param func_or_text: message or callable to decorate</span>
+<span class="sd">    :type func_or_text: callable</span>
+<span class="sd">    :param environ: optional environment mapping</span>
+<span class="sd">    :type environ: collections.abc.Mapping</span>
+<span class="sd">    :returns: nested decorator or new decorated function (depending on params)</span>
+<span class="sd">    :rtype: callable</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;Deprecated function </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">func_or_text</span><span class="p">)</span> <span class="k">else</span>
+            <span class="n">func_or_text</span>
+            <span class="p">)</span>
+
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">new_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">getdebug</span><span class="p">(</span><span class="n">environ</span><span class="p">):</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;always&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">,</span>
+                              <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_func</span>
+    <span class="k">return</span> <span class="n">inner</span><span class="p">(</span><span class="n">func_or_text</span><span class="p">)</span> <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">func_or_text</span><span class="p">)</span> <span class="k">else</span> <span class="n">inner</span></div>
+
+
+<div class="viewcode-block" id="usedoc"><a class="viewcode-back" href="../../compat.html#browsepy.compat.usedoc">[docs]</a><span class="k">def</span> <span class="nf">usedoc</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Decorator which copies __doc__ of given object into decorated one.</span>
+
+<span class="sd">    Usage:</span>
+
+<span class="sd">    &gt;&gt;&gt; def fnc1():</span>
+<span class="sd">    ...     &quot;&quot;&quot;docstring&quot;&quot;&quot;</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; @usedoc(fnc1)</span>
+<span class="sd">    ... def fnc2():</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; fnc2.__doc__</span>
+<span class="sd">    &#39;docstring&#39;collections.abc.D</span>
+
+<span class="sd">    :param other: anything with a __doc__ attribute</span>
+<span class="sd">    :type other: any</span>
+<span class="sd">    :returns: decorator function</span>
+<span class="sd">    :rtype: callable</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="n">fnc</span><span class="p">):</span>
+        <span class="n">fnc</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">fnc</span><span class="o">.</span><span class="n">__doc__</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;__doc__&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fnc</span>
+    <span class="k">return</span> <span class="n">inner</span></div>
+
+
+<span class="n">ENV_PATH</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+  <span class="n">fsdecode</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&lt;SCAPED-PATHSEP&gt;&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">))</span>
+  <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">os</span>
+    <span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;PATH&#39;</span><span class="p">]</span>  <span class="c1"># noqa</span>
+    <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">,</span> <span class="s1">&#39;&lt;SCAPED-PATHSEP&gt;&#39;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">)</span>
+  <span class="p">)</span>
+
+
+<div class="viewcode-block" id="which"><a class="viewcode-back" href="../../compat.html#browsepy.compat.which">[docs]</a><span class="k">def</span> <span class="nf">which</span><span class="p">(</span><span class="n">name</span><span class="p">,</span>
+          <span class="n">env_path</span><span class="o">=</span><span class="n">ENV_PATH</span><span class="p">,</span>
+          <span class="n">is_executable_fnc</span><span class="o">=</span><span class="n">isexec</span><span class="p">,</span>
+          <span class="n">path_join_fnc</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get command absolute path.</span>
+
+<span class="sd">    :param name: name of executable command</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param env_path: OS environment executable paths, defaults to autodetected</span>
+<span class="sd">    :type env_path: list of str</span>
+<span class="sd">    :param is_executable_fnc: callable will be used to detect if path is</span>
+<span class="sd">                              executable, defaults to `isexec`</span>
+<span class="sd">    :type is_executable_fnc: Callable</span>
+<span class="sd">    :param path_join_fnc: callable will be used to join path components</span>
+<span class="sd">    :type path_join_fnc: Callable</span>
+<span class="sd">    :return: absolute path</span>
+<span class="sd">    :rtype: str or None</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">env_path</span><span class="p">:</span>
+        <span class="n">exe_file</span> <span class="o">=</span> <span class="n">path_join_fnc</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_executable_fnc</span><span class="p">(</span><span class="n">exe_file</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">exe_file</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<span class="k">if</span> <span class="n">PY_LEGACY</span><span class="p">:</span>
+    <span class="ne">FileNotFoundError</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;FileNotFoundError&#39;</span><span class="p">,</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,),</span> <span class="p">{})</span>  <span class="c1"># noqa</span>
+    <span class="nb">range</span> <span class="o">=</span> <span class="n">xrange</span>  <span class="c1"># noqa</span>
+    <span class="nb">filter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">ifilter</span>
+    <span class="n">basestring</span> <span class="o">=</span> <span class="n">basestring</span>  <span class="c1"># noqa</span>
+    <span class="n">unicode</span> <span class="o">=</span> <span class="n">unicode</span>  <span class="c1"># noqa</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="ne">FileNotFoundError</span> <span class="o">=</span> <span class="ne">FileNotFoundError</span>
+    <span class="nb">range</span> <span class="o">=</span> <span class="nb">range</span>
+    <span class="nb">filter</span> <span class="o">=</span> <span class="nb">filter</span>
+    <span class="n">basestring</span> <span class="o">=</span> <span class="nb">str</span>
+    <span class="n">unicode</span> <span class="o">=</span> <span class="nb">str</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><h3 class="logo"><a href="../../index.html">browsepy</a></h3>
+<p>The simple web file browser.</p>
+<h3>Useful Links</h3>
+<ul>
+  <li>
+    <a href="http://github.com/ergoithz/browsepy">Browsepy at GitHub</a>
+  </li>
+  <li>
+    <a href="http://pypi.python.org/pypi/browsepy">Browsepy at PyPI</a>
+  </li>
+  <li>
+    <a href="http://github.com/ergoithz/browsepy/issues">Issue Tracker</a>
+  </li>
+</ul><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Felipe A. Hernandez.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
