@@ -13,6 +13,10 @@
     <a href="{{ url_for(widget.endpoint, path=f.urlpath) }}"
        {% if widget.css %}class="{{ widget.css }}"{% endif %}
        >{{ widget.text or '' }}</a>
+  {%- elif widget.type == 'span' -%}
+    <span
+       {% if widget.css %}class="{{ widget.css }}"{% endif %}
+       >{{ widget.text or '' }}</span>
   {%- elif widget.type == 'script' -%}
     <script
       src="{{ widget.src or url_for(widget.endpoint, filename=widget.filename) }}"

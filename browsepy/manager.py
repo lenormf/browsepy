@@ -207,6 +207,10 @@ class WidgetPluginManager(RegistrablePluginManager):
                 'text': lambda f: f.name,
                 'icon': lambda f: f.category
             }),
+        'span': defaultsnamedtuple(
+            'Span',
+            ('place', 'type', 'css', 'text'),
+            { 'type': 'span' }),
         'button': defaultsnamedtuple(
             'Button',
             ('place', 'type', 'css', 'text', 'endpoint', 'href'),
