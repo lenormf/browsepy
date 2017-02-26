@@ -83,6 +83,7 @@ setup(
         'browsepy.tests.deprecated.plugin',
         'browsepy.plugin',
         'browsepy.plugin.player',
+        'browsepy.plugin.diskspace',
         ],
     entry_points={
         'console_scripts': (
